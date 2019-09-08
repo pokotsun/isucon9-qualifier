@@ -113,6 +113,8 @@ func main() {
 	}
 	defer dbx.Close()
 
+	redisPool = newPool()
+
 	mux := goji.NewMux()
 
 	// API
