@@ -1,3 +1,5 @@
+github.com/ammario/crand v0.0.0-20170610232734-f30c14fd0b28 h1:n+IlcQjzqYK4iuF9yoSqclS/iGbuDE4fw0VrkX3jGkg=
+github.com/ammario/crand v0.0.0-20170610232734-f30c14fd0b28/go.mod h1:Tu8emv5aqw1RF5cfgU0wvxjIIkTb+kXdOOIuNxSaScY=
 github.com/go-sql-driver/mysql v1.4.0/go.mod h1:zAC/RDZ24gD3HViQzih4MyKcchzm+sOG5ZlKdlhCg5w=
 github.com/go-sql-driver/mysql v1.4.1 h1:g24URVg0OFbNUTx9qqY1IRZ9D9z3iPyi5zKhQZpNwpA=
 github.com/go-sql-driver/mysql v1.4.1/go.mod h1:zAC/RDZ24gD3HViQzih4MyKcchzm+sOG5ZlKdlhCg5w=
