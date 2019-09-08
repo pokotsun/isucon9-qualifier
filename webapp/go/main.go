@@ -232,6 +232,13 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 
 	redisful, _ := NewRedisful()
 	redisful.FLUSH_ALL()
+
+	err = redisful.InitUsers()
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
 	err = redisful.SetDataToCache(PaymentServiceURLKey, ri.PaymentServiceURL)
 	if err != nil {
 		log.Println("redis: set payment url failed")
@@ -246,12 +253,6 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	redisful, _ = NewRedisful()
-	err = redisful.InitUsers()
-	if err != nil {
-		log.Print(err)
-		return
-	}
 	redisful.Close()
 
 	res := resInitialize{
