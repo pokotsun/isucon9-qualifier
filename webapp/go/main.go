@@ -172,17 +172,17 @@ func getCSRFToken(r *http.Request) string {
 	return csrfToken.(string)
 }
 
-func getCategoryByID(q sqlx.Queryer, categoryID int) (category Category, err error) {
-	err = sqlx.Get(q, &category, "SELECT * FROM `categories` WHERE `id` = ?", categoryID)
-	if category.ParentID != 0 {
-		parentCategory, err := getCategoryByID(q, category.ParentID)
-		if err != nil {
-			return category, err
-		}
-		category.ParentCategoryName = parentCategory.CategoryName
-	}
-	return category, err
-}
+// func getCategoryByID(q sqlx.Queryer, categoryID int) (category Category, err error) {
+// 	err = sqlx.Get(q, &category, "SELECT * FROM `categories` WHERE `id` = ?", categoryID)
+// 	if category.ParentID != 0 {
+// 		parentCategory, err := getCategoryByID(q, category.ParentID)
+// 		if err != nil {
+// 			return category, err
+// 		}
+// 		category.ParentCategoryName = parentCategory.CategoryName
+// 	}
+// 	return category, err
+// }
 
 func getConfigByName(name string) (string, error) {
 	config := Config{}
@@ -388,14 +388,22 @@ func postBuy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	category, err := getCategoryByID(tx, targetItem.CategoryID)
-	if err != nil {
+	category, ok := getCategoryById(targetItem.CategoryID)
+	if !ok {
 		log.Print(err)
 
 		outputErrorMsg(w, http.StatusInternalServerError, "category id error")
 		tx.Rollback()
 		return
 	}
+	// category, err := getCategoryByID(tx, targetItem.CategoryID)
+	// if err != nil {
+	// 	log.Print(err)
+
+	// 	outputErrorMsg(w, http.StatusInternalServerError, "category id error")
+	// 	tx.Rollback()
+	// 	return
+	// }
 
 	result, err := tx.Exec("INSERT INTO `transaction_evidences` (`seller_id`, `buyer_id`, `status`, `item_id`, `item_name`, `item_price`, `item_description`,`item_category_id`,`item_root_category_id`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		targetItem.SellerID,
