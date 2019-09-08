@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -321,7 +322,11 @@ func getUserItems(w http.ResponseWriter, r *http.Request) {
 	itemSimples := []ItemSimple{}
 	for _, item := range items {
 		category, ok := getCategoryById(item.CategoryID)
+		fmt.Println("getCategoryStatus: ")
+		fmt.Println(ok)
 		if !ok {
+			fmt.Println("getCategoryStatus: not found")
+			fmt.Println(ok)
 			outputErrorMsg(w, http.StatusNotFound, "category not found")
 			return
 		}
