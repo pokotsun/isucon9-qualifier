@@ -24,6 +24,7 @@ var (
 		Category{ID: 32, ParentID: 30, CategoryName: "ビジネスチェア", ParentCategoryName: "オフィスチェア"},
 		Category{ID: 33, ParentID: 30, CategoryName: "回転チェア", ParentCategoryName: "オフィスチェア"},
 		Category{ID: 34, ParentID: 30, CategoryName: "リクライニングチェア", ParentCategoryName: "オフィスチェア"},
+		Category{ID: 35, ParentID: 30, CategoryName: "投擲用椅子", ParentCategoryName: "オフィスチェア"},
 		Category{ID: 40, ParentID: 0, CategoryName: "折りたたみ椅子"},
 		Category{ID: 41, ParentID: 40, CategoryName: "パイプ椅子", ParentCategoryName: "折りたたみ椅子"},
 		Category{ID: 42, ParentID: 40, CategoryName: "木製折りたたみ椅子", ParentCategoryName: "折りたたみ椅子"},
