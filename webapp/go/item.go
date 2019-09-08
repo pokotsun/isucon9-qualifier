@@ -40,12 +40,11 @@ func getNewItems(w http.ResponseWriter, r *http.Request) {
 	if itemID > 0 && createdAt > 0 {
 		// paging
 		rows, err = dbx.Query(
-			"SELECT i.*, u.id, u.account_name, u.num_sell_items FROM `items` i INNER JOIN `users` u ON u.id = i.seller_id WHERE `status` IN (?,?) AND (i.`created_at` < ?  OR (i.`created_at` <= ? AND i.`id` < ?)) ORDER BY i.`created_at` DESC, i.`id` DESC LIMIT ?",
+			"SELECT i.*, u.id, u.account_name, u.num_sell_items FROM `items` i INNER JOIN `users` u ON u.id = i.seller_id WHERE i.`id` < ? AND `status` IN (?,?) AND i.`created_at` < ? ORDER BY i.`created_at` DESC, i.`id` DESC LIMIT ?",
+			itemID,
 			ItemStatusOnSale,
 			ItemStatusSoldOut,
 			time.Unix(createdAt, 0),
-			time.Unix(createdAt, 0),
-			itemID,
 			ItemsPerPage+1,
 		)
 		if err != nil {
