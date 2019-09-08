@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -323,7 +322,6 @@ func getUserItems(w http.ResponseWriter, r *http.Request) {
 	itemSimples := []ItemSimple{}
 	for _, item := range items {
 		category, ok := getCategoryById(item.CategoryID)
-		fmt.Println(ok)
 		if !ok {
 			outputErrorMsg(w, http.StatusNotFound, "category not found")
 			return
@@ -698,9 +696,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 
 	for i, _ := range itemDetails {
 		if temp_map[strconv.Itoa(int(itemDetails[i].ID))] == nil {
-			log.Print(err)
-			outputErrorMsg(w, http.StatusNotFound, "shipping not found")
-			return
+			continue
 		}
 		ts := temp_map[strconv.Itoa(int(itemDetails[i].ID))].(TS)
 		if ts.Ship.ReserveID != "" {
