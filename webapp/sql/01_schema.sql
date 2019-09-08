@@ -1,10 +1,6 @@
 use `isucari`;
 
 DROP TABLE IF EXISTS `configs`;
-CREATE TABLE configs (
-    `name` VARCHAR(191) NOT NULL PRIMARY KEY,
-    `val` VARCHAR(255) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;
 
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
@@ -70,8 +66,3 @@ CREATE TABLE `shippings` (
 ) ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;
 
 DROP TABLE IF EXISTS `categories`;
-CREATE TABLE `categories` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `parent_id` int unsigned NOT NULL,
-  `category_name` varchar(191) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4;
