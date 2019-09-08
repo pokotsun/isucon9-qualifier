@@ -323,11 +323,8 @@ func getUserItems(w http.ResponseWriter, r *http.Request) {
 	itemSimples := []ItemSimple{}
 	for _, item := range items {
 		category, ok := getCategoryById(item.CategoryID)
-		fmt.Println("getCategoryStatus: ")
 		fmt.Println(ok)
 		if !ok {
-			fmt.Println("getCategoryStatus: not found")
-			fmt.Println(ok)
 			outputErrorMsg(w, http.StatusNotFound, "category not found")
 			return
 		}
@@ -706,17 +703,19 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		ts := temp_map[strconv.Itoa(int(itemDetails[i].ID))].(TS)
-		ssr, err := APIShipmentStatus(getShipmentServiceURL(), &APIShipmentStatusReq{
-			ReserveID: ts.Ship.ReserveID,
-		})
-		if err != nil {
-			log.Print(err)
-			outputErrorMsg(w, http.StatusInternalServerError, "failed to request to shipment service")
-			return
+		if ts.Ship.ReserveID != "" {
+			ssr, err := APIShipmentStatus(getShipmentServiceURL(), &APIShipmentStatusReq{
+				ReserveID: ts.Ship.ReserveID,
+			})
+			if err != nil {
+				log.Print(err)
+				outputErrorMsg(w, http.StatusInternalServerError, "failed to request to shipment service")
+				return
+			}
+			itemDetails[i].ShippingStatus = ssr.Status
 		}
 		itemDetails[i].TransactionEvidenceID = ts.Trans.ID
 		itemDetails[i].TransactionEvidenceStatus = ts.Trans.Status
-		itemDetails[i].ShippingStatus = ssr.Status
 
 	}
 	rows.Close()
