@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -55,15 +54,15 @@ const (
 	TransactionsPerPage = 10
 
 	BcryptCost = 10
+
+	PaymentServiceURLKey  = "PAYMENT_URL"
+	ShipmentServiceURLKey = "SHIPMENT_URL"
 )
 
 var (
 	templates *template.Template
 	dbx       *sqlx.DB
 	store     sessions.Store
-
-	shipmentServiceUrl string
-	paymentServiceUrl  string
 )
 
 func init() {
@@ -188,27 +187,23 @@ func getCSRFToken(r *http.Request) string {
 // 	return category, err
 // }
 
-func getConfigByName(name string) (string, error) {
-	if name == "payment_service_url" {
-		return paymentServiceUrl, nil
-	} else if name == "shipment_service_url" {
-		return shipmentServiceUrl, nil
-	}
-	return "", errors.New("not found configs")
-}
-
 func getPaymentServiceURL() string {
-	val, _ := getConfigByName("payment_service_url")
-	if val == "" {
+	var val string
+	redisful, _ := NewRedisful()
+	err := redisful.GetDataFromCache(PaymentServiceURLKey, &val)
+	if err != nil {
 		return DefaultPaymentServiceURL
 	}
 	return val
+
 }
 
 func getShipmentServiceURL() string {
-	val, _ := getConfigByName("shipment_service_url")
-	if val == "" {
-		return DefaultShipmentServiceURL
+	var val string
+	redisful, _ := NewRedisful()
+	err := redisful.GetDataFromCache(ShipmentServiceURLKey, &val)
+	if err != nil {
+		return DefaultPaymentServiceURL
 	}
 	return val
 }
@@ -235,8 +230,20 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	paymentServiceUrl = ri.PaymentServiceURL
-	shipmentServiceUrl = ri.ShipmentServiceURL
+	redisful, _ := NewRedisful()
+	err = redisful.SetDataToCache(PaymentServiceURLKey, ri.PaymentServiceURL)
+	if err != nil {
+		log.Println("redis: set payment url failed")
+		outputErrorMsg(w, http.StatusInternalServerError, "set cache payment url error")
+		return
+	}
+
+	err = redisful.SetDataToCache(ShipmentServiceURLKey, ri.ShipmentServiceURL)
+	if err != nil {
+		log.Println("redis: set shipment url failed")
+		outputErrorMsg(w, http.StatusInternalServerError, "exec cache shipment url error")
+		return
+	}
 
 	redisful, _ := NewRedisful()
 	redisful.FLUSH_ALL()
