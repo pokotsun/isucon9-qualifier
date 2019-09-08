@@ -105,6 +105,7 @@ func getNewItems(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 	rows.Close()
+	redisful.Close()
 
 	hasNext := false
 	if len(itemSimples) > ItemsPerPage {
