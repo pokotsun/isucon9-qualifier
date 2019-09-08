@@ -8,6 +8,10 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+const (
+	USER_CACHE_KEY = string("USERS")
+)
+
 func getUser(r *http.Request) (user User, errCode int, errMsg string) {
 	session := getSession(r)
 	userID, ok := session.Values["user_id"]
@@ -37,4 +41,16 @@ func getUserSimpleByID(q sqlx.Queryer, userID int64) (userSimple UserSimple, err
 	userSimple.AccountName = user.AccountName
 	userSimple.NumSellItems = user.NumSellItems
 	return userSimple, err
+}
+
+func (r *Redisful) InitUsers() error {
+	rows, err := db.Query("SELECT id, account_name, num_sell_items FROM users")
+	defer rows.Close()
+	for rows.Next() {
+		var u UserSimple
+		if err := rows.Scan(&u.ID, &u.AccountName, &u.NumSellItems); err != nil {
+			return err
+		}
+		r.SetHashToCache(USER_CACHE_KEY, u.ID, u)
+	}
 }

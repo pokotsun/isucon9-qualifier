@@ -238,6 +238,13 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 	paymentServiceUrl = ri.PaymentServiceURL
 	shipmentServiceUrl = ri.ShipmentServiceURL
 
+	r, _ := NewRedisful()
+	err = r.InitUsers()
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
 	res := resInitialize{
 		// キャンペーン実施時には還元率の設定を返す。詳しくはマニュアルを参照のこと。
 		Campaign: 0,
