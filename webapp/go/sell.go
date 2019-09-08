@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"time"
-
 )
 
 func postSell(w http.ResponseWriter, r *http.Request) {
@@ -58,12 +57,18 @@ func postSell(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	category, err := getCategoryByID(dbx, categoryID)
-	if err != nil || category.ParentID == 0 {
+	category, ok := getCategoryById(categoryID)
+	if !ok {
 		log.Print(categoryID, category)
 		outputErrorMsg(w, http.StatusBadRequest, "Incorrect category ID")
 		return
 	}
+	// category, err := getCategoryByID(dbx, categoryID)
+	// if err != nil || category.ParentID == 0 {
+	// 	log.Print(categoryID, category)
+	// 	outputErrorMsg(w, http.StatusBadRequest, "Incorrect category ID")
+	// 	return
+	// }
 
 	user, errCode, errMsg := getUser(r)
 	if errMsg != "" {
