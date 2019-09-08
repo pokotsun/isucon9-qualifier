@@ -4,8 +4,13 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/jmoiron/sqlx"
+)
+
+const (
+	userSimpleHashKey = "USER_SIMPLE_HASH"
 )
 
 func getUser(r *http.Request) (user User, errCode int, errMsg string) {
@@ -37,4 +42,29 @@ func getUserSimpleByID(q sqlx.Queryer, userID int64) (userSimple UserSimple, err
 	userSimple.AccountName = user.AccountName
 	userSimple.NumSellItems = user.NumSellItems
 	return userSimple, err
+}
+
+func (r *Redisful) SetUserSimpleToRedis(us UserSimple) error {
+	err := r.SetHashToCache(userSimpleHashKey, us.ID, us)
+	return err
+}
+
+func (r *Redisful) GetUserSimpleFromRedis(id int, us UserSimple) error {
+	err := r.GetHashFromCache(userSimpleHashKey, strconv.Itoa(id), us)
+	return err
+}
+
+func (r *Redisful) InitializeUserSimple() error {
+	var userSimples []UserSimple
+	err := dbx.Select(&userSimples, "SELECT id, account_name, num_sell_items FROM users")
+	if err != nil {
+		return err
+	}
+	for _, us := range userSimples {
+		err := r.SetUserSimpleToRedis(us)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

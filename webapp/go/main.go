@@ -256,6 +256,15 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	redisful, _ := NewRedisful()
+	defer redisful.Close()
+	err = redisful.InitializeUserSimple()
+	if err != nil {
+		fmt.Println("redis: initialize user simple failed")
+		outputErrorMsg(w, http.StatusInternalServerError, "db error")
+		return
+	}
+
 	res := resInitialize{
 		// キャンペーン実施時には還元率の設定を返す。詳しくはマニュアルを参照のこと。
 		Campaign: 0,
@@ -620,6 +629,20 @@ func postRegister(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Print(err)
 
+		outputErrorMsg(w, http.StatusInternalServerError, "db error")
+		return
+	}
+
+	userSimple := UserSimple{
+		ID:           userID,
+		AccountName:  accountName,
+		NumSellItems: 0,
+	}
+	redisful := NewRedisful()
+	defer redisful.Close()
+	err = redisful.SetUserSimpleToRedis(userSimple)
+	if err != nil {
+		log.Println("/register: failed to set usersimple")
 		outputErrorMsg(w, http.StatusInternalServerError, "db error")
 		return
 	}

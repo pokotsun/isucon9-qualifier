@@ -199,12 +199,23 @@ func getNewCategoryItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	redisful := NewRedisful()
+
 	itemSimples := []ItemSimple{}
 	for _, item := range items {
-		seller, err := getUserSimpleByID(dbx, item.SellerID)
+		var seller UserSimple
+		err = redisful.GetUserSimpleFromRedis(item.SellerID, seller)
 		if err != nil {
-			outputErrorMsg(w, http.StatusNotFound, "seller not found")
-			return
+			seller, err = getUserSimpleByID(dbx, item.SellerID)
+			if err != nil {
+				outputErrorMsg(w, http.StatusNotFound, "seller not found")
+				return
+			} else {
+				err := redisful.SetUserSimpleToRedis(seller)
+				if err != nil {
+					log.Println("getnewItems: failed set user simple to redis")
+				}
+			}
 		}
 		category, ok := getCategoryById(item.CategoryID)
 		if !ok {
@@ -256,10 +267,21 @@ func getUserItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userSimple, err := getUserSimpleByID(dbx, userID)
+	redisful := NewRedisful()
+
+	var userSimple UserSimple
+	err = redisful.GetUserSimpleFromRedis(userID, userSimple)
 	if err != nil {
-		outputErrorMsg(w, http.StatusNotFound, "user not found")
-		return
+		userSimple, err = getUserSimpleByID(dbx, userID)
+		if err != nil {
+			outputErrorMsg(w, http.StatusNotFound, "user not found")
+			return
+		} else {
+			err = redisful.SetUserSimpleToRedis(seller)
+			if err != nil {
+				log.Println("getUserItem: failed set user simple to redis")
+			}
+		}
 	}
 
 	query := r.URL.Query()
@@ -402,10 +424,20 @@ func getItem(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
-	seller, err := getUserSimpleByID(dbx, item.SellerID)
+	redisful := NewRedisful()
+	var seller UserSimple
+	err = redisful.GetUserSimpleFromRedis(item.SellerID, seller)
 	if err != nil {
-		outputErrorMsg(w, http.StatusNotFound, "seller not found")
-		return
+		seller, err = getUserSimpleByID(dbx, item.SellerID)
+		if err != nil {
+			outputErrorMsg(w, http.StatusNotFound, "seller not found")
+			return
+		} else {
+			err := redisful.SetUserSimpleToRedis(seller)
+			if err != nil {
+				log.Println("getItem: failed set user simple to redis")
+			}
+		}
 	}
 
 	itemDetail := ItemDetail{
@@ -428,10 +460,22 @@ func getItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if (user.ID == item.SellerID || user.ID == item.BuyerID) && item.BuyerID != 0 {
-		buyer, err := getUserSimpleByID(dbx, item.BuyerID)
+		redisful := NewRedisful()
+
+		var buyer UserSimple
+		err = redisful.GetUserSimpleFromRedis(item.BuyerID, buyer)
+
 		if err != nil {
-			outputErrorMsg(w, http.StatusNotFound, "buyer not found")
-			return
+			buyer, err = getUserSimpleByID(dbx, item.BuyerID)
+			if err != nil {
+				outputErrorMsg(w, http.StatusNotFound, "buyer not found")
+				return
+			} else {
+				err := redisful.SetUserSimpleToRedis(seller)
+				if err != nil {
+					log.Println("getUserItem: failed set user simple to redis")
+				}
+			}
 		}
 		itemDetail.BuyerID = item.BuyerID
 		itemDetail.Buyer = &buyer
@@ -638,13 +682,25 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	redisful := NewRedisful()
+
 	itemDetails := []ItemDetail{}
 	for _, item := range items {
-		seller, err := getUserSimpleByID(tx, item.SellerID)
+		var seller UserSimple
+		err := redisful.GetUserSimpleFromRedis(item.SellerID, seller)
 		if err != nil {
-			outputErrorMsg(w, http.StatusNotFound, "seller not found")
-			tx.Rollback()
-			return
+			log.Println("getItem: failed get usersimple from redis")
+			seller, err = getUserSimpleByID(tx, item.SellerID)
+			if err != nil {
+				outputErrorMsg(w, http.StatusNotFound, "seller not found")
+				tx.Rollback()
+				return
+			} else {
+				err := redisful.SetUserSimpleToRedis(seller)
+				if err != nil {
+					log.Println("getItem: failed set user simple to redis")
+				}
+			}
 		}
 
 		category, ok := getCategoryById(item.CategoryID)
@@ -680,12 +736,23 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if item.BuyerID != 0 {
-			buyer, err := getUserSimpleByID(tx, item.BuyerID)
+
+			var buyer UserSimple
+			err = r.GetUserSimpleFromRedis()
 			if err != nil {
-				outputErrorMsg(w, http.StatusNotFound, "buyer not found")
-				tx.Rollback()
-				return
+				buyer, err = getUserSimpleByID(tx, item.BuyerID)
+				if err != nil {
+					outputErrorMsg(w, http.StatusNotFound, "buyer not found")
+					tx.Rollback()
+					return
+				}
+			} else {
+				err = r.SetUserSimpleToRedis(seller)
+				if err != nil {
+					log.Println("getTransaction: failed set user simple to redis")
+				}
 			}
+
 			itemDetail.BuyerID = item.BuyerID
 			itemDetail.Buyer = &buyer
 		}
