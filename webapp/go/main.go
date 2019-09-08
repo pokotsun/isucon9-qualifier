@@ -261,6 +261,7 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 	err = redisful.InitializeUserSimple()
 	if err != nil {
 		fmt.Println("redis: initialize user simple failed")
+		fmt.Println(err)
 		outputErrorMsg(w, http.StatusInternalServerError, "db error")
 		return
 	}
