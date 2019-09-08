@@ -21,11 +21,11 @@ NOW=`date +'%H-%M-%S'`
 sudo cp $LOGPATH/nginx/access.log $LOGPATH/nginx/access-$NOW.log
 sudo sh -c 'echo "" > /var/log/nginx/access.log'
 
-#sudo cp $LOGPATH/mariadb/slow.log $LOGPATH/mariadb/slow-$NOW.log
-#sudo sh -c 'echo "" > /var/log/mariadb/slow.log'
+sudo cp $LOGPATH/mysql/slow.log $LOGPATH/mysql/slow-$NOW.log
+sudo sh -c 'echo "" > /var/log/mysql/slow.log'
 
 # replace mysql conf
-#sudo cp conf/mysqld.cnf /etc/mysql/mysql.conf.d/mysqld.cnf
+sudo cp /home/isucon/isucari/conf/mysqld.cnf /etc/mysql/mysql.conf.d/mysqld.cnf
 
 # replace redis conf    
 #sudo cp conf/redis.conf /etc/redis/redis.conf    
