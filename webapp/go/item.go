@@ -676,6 +676,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 			buyer, err := getUserSimpleByID(dbx, item.BuyerID)
 			if err != nil {
 				outputErrorMsg(w, http.StatusNotFound, "buyer not found")
+				log.Print(err)
 				return
 			}
 			itemDetail.BuyerID = item.BuyerID
@@ -689,6 +690,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 	rows, err = dbx.Query(
 		"SELECT t.id, t.status, t.item_id, s.reserve_id FROM transaction_evidences t INNER JOIN shippings s on s.transaction_evidence_id = t.id WHERE t.item_id IN (?)", strings.Join(item_ids, ","))
 	if err != nil {
+		log.Print(err)
 		return
 	}
 	temp_map := make(map[string]interface{})
@@ -705,6 +707,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 
 	for i, _ := range itemDetails {
 		if temp_map[strconv.Itoa(int(itemDetails[i].ID))] == nil {
+			log.Print(err)
 			outputErrorMsg(w, http.StatusNotFound, "shipping not found")
 			return
 		}
