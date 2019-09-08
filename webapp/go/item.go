@@ -200,11 +200,16 @@ func getNewCategoryItems(w http.ResponseWriter, r *http.Request) {
 	}
 
 	itemSimples := []ItemSimple{}
+	redisful, _ := NewRedisful()
 	for _, item := range items {
-		seller, err := getUserSimpleByID(dbx, item.SellerID)
+		var seller UserSimple
+		seller, err = redisful.GetUserSimpleByID(item.SellerID)
 		if err != nil {
-			outputErrorMsg(w, http.StatusNotFound, "seller not found")
-			return
+			seller, err = getUserSimpleByID(dbx, item.SellerID)
+			if err != nil {
+				outputErrorMsg(w, http.StatusNotFound, "seller not found")
+				return
+			}
 		}
 		category, ok := getCategoryById(item.CategoryID)
 		if !ok {

@@ -244,6 +244,7 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 		log.Print(err)
 		return
 	}
+	redisful.Close()
 
 	res := resInitialize{
 		// キャンペーン実施時には還元率の設定を返す。詳しくはマニュアルを参照のこと。
@@ -618,6 +619,15 @@ func postRegister(w http.ResponseWriter, r *http.Request) {
 		AccountName: accountName,
 		Address:     address,
 	}
+
+	us := UserSimple{
+		ID:           userID,
+		AccountName:  accountName,
+		NumSellItems: 0,
+	}
+	redisful, _ := NewRedisful()
+	redisful.AddUser(us)
+	redisful.Close()
 
 	session := getSession(r)
 	session.Values["user_id"] = u.ID

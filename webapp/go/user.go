@@ -2,15 +2,22 @@ package main
 
 import (
 	"database/sql"
+	// "fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/jmoiron/sqlx"
 )
 
 const (
 	USER_CACHE_KEY = string("USERS")
+	// UESR_NUM_KEY   = string("U-ID-")
 )
+
+// func makeKey(userID int64) string {
+// 	return fmt.Sprintf("%s%d", USER_CACHE_KEY, userID)
+// }
 
 func getUser(r *http.Request) (user User, errCode int, errMsg string) {
 	session := getSession(r)
@@ -57,4 +64,21 @@ func (r *Redisful) InitUsers() error {
 		r.SetHashToCache(USER_CACHE_KEY, u.ID, u)
 	}
 	return nil
+}
+
+func (r *Redisful) AddUser(u UserSimple) error {
+	err := r.SetHashToCache(USER_CACHE_KEY, u.ID, u)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *Redisful) GetUserSimpleByID(userID int64) (UserSimple, error) {
+	var user UserSimple
+	err := r.GetHashFromCache(USER_CACHE_KEY, strconv.Itoa(int(userID)), &user)
+	if err != nil {
+		return user, err
+	}
+	return user, err
 }
