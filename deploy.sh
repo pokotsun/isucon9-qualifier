@@ -28,8 +28,8 @@ sudo sh -c 'echo "" > /var/log/mysql/slow.log'
 sudo cp /home/isucon/isucari/conf/mysqld.cnf /etc/mysql/mysql.conf.d/mysqld.cnf
 
 # replace redis conf    
-#sudo cp conf/redis.conf /etc/redis/redis.conf    
-#sudo chown redis:redis /etc/redis/redis.conf
+sudo cp /home/isucon/isucari/conf/redis.conf /etc/redis/redis.conf    
+sudo chown redis:redis /etc/redis/redis.conf
 
 # restart application services
 # db, app, nginx, redis
@@ -37,5 +37,5 @@ echo 'systemctl are restarting...'
 sudo systemctl restart mysql.service
 sudo systemctl restart isucari.golang.service
 sudo systemctl restart nginx.service
-#sudo systemctl restart redis.service
+sudo systemctl restart redis.service
 echo 'Finished to restart!!'
