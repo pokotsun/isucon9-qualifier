@@ -44,7 +44,10 @@ func getUserSimpleByID(q sqlx.Queryer, userID int64) (userSimple UserSimple, err
 }
 
 func (r *Redisful) InitUsers() error {
-	rows, err := db.Query("SELECT id, account_name, num_sell_items FROM users")
+	rows, err := dbx.Query("SELECT id, account_name, num_sell_items FROM users")
+	if err != nil {
+		return err
+	}
 	defer rows.Close()
 	for rows.Next() {
 		var u UserSimple
@@ -53,4 +56,5 @@ func (r *Redisful) InitUsers() error {
 		}
 		r.SetHashToCache(USER_CACHE_KEY, u.ID, u)
 	}
+	return nil
 }

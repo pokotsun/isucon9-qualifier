@@ -238,8 +238,8 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 	paymentServiceUrl = ri.PaymentServiceURL
 	shipmentServiceUrl = ri.ShipmentServiceURL
 
-	r, _ := NewRedisful()
-	err = r.InitUsers()
+	redisful, _ := NewRedisful()
+	err = redisful.InitUsers()
 	if err != nil {
 		log.Print(err)
 		return
