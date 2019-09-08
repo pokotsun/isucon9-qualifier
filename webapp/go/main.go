@@ -63,6 +63,9 @@ var (
 	templates *template.Template
 	dbx       *sqlx.DB
 	store     sessions.Store
+
+	PaymentServiceURL  string
+	ShipmentServiceURL string
 )
 
 func init() {
@@ -184,27 +187,35 @@ func getCSRFToken(r *http.Request) string {
 // 		}
 // 		category.ParentCategoryName = parentCategory.CategoryName
 // 	}
-// 	return category, err
+// 	r\
 // }
 
 func getPaymentServiceURL() string {
 	var val string
+	if PaymentServiceURL != "" {
+		return PaymentServiceURL
+	}
 	redisful, _ := NewRedisful()
 	err := redisful.GetDataFromCache(PaymentServiceURLKey, &val)
 	if err != nil {
 		return DefaultPaymentServiceURL
 	}
+	PaymentServiceURL = val
 	return val
 
 }
 
 func getShipmentServiceURL() string {
 	var val string
+	if ShipmentServiceURL != "" {
+		return ShipmentServiceURL
+	}
 	redisful, _ := NewRedisful()
 	err := redisful.GetDataFromCache(ShipmentServiceURLKey, &val)
 	if err != nil {
 		return DefaultPaymentServiceURL
 	}
+	ShipmentServiceURL = val
 	return val
 }
 
@@ -230,8 +241,12 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	PaymentServiceURL = ri.PaymentServiceURL
+	ShipmentServiceURL = ri.ShipmentServiceURL
+
 	redisful, _ := NewRedisful()
 	err = redisful.SetDataToCache(PaymentServiceURLKey, ri.PaymentServiceURL)
+
 	if err != nil {
 		log.Println("redis: set payment url failed")
 		outputErrorMsg(w, http.StatusInternalServerError, "set cache payment url error")
