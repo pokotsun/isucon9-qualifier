@@ -239,6 +239,7 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 	shipmentServiceUrl = ri.ShipmentServiceURL
 
 	redisful, _ := NewRedisful()
+	redisful.FLUSH_ALL()
 	err = redisful.InitUsers()
 	if err != nil {
 		log.Print(err)
