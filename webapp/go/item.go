@@ -598,7 +598,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 	if itemID > 0 && createdAt > 0 {
 		// paging
 		rows, err = dbx.Query(
-			"SELECT i.*, u.id, u.account_name, u.num_sell_items FROM `items` i INNER JOIN users u on u.id = i.seller_id WHERE i.`id` < ? AND (i.`created_at` < ?) AND (i.`seller_id` = ? OR i.`buyer_id` = ?) ORDER BY i.`created_at` DESC, i.`id` DESC LIMIT ?",
+			"SELECT * FROM `items` WHERE `id` < ? AND (`created_at` < ?) AND (`seller_id` = ? OR `buyer_id` = ?) ORDER BY `created_at` DESC, `id` DESC LIMIT ?",
 			itemID,
 			time.Unix(createdAt, 0),
 			user.ID,
@@ -613,7 +613,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// 1st page
 		rows, err = dbx.Query(
-			"SELECT i.*, u.id, u.account_name, u.num_sell_items FROM `items` i INNER JOIN users u on u.id = i.seller_id WHERE (i.`seller_id` = ? OR i.`buyer_id` = ?)  ORDER BY i.`created_at` DESC, i.`id` DESC LIMIT ?",
+			"SELECT * FROM `items` WHERE (`seller_id` = ? OR `buyer_id` = ?)  ORDER BY `created_at` DESC, `id` DESC LIMIT ?",
 			user.ID,
 			user.ID,
 			TransactionsPerPage+1,
@@ -627,12 +627,24 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 
 	itemDetails := []ItemDetail{}
 	var item_ids []string
+	redisful, _ := NewRedisful()
+
 	for rows.Next() {
 		var item Item
 		var seller UserSimple
-		if err := rows.Scan(&item.ID, &item.SellerID, &item.BuyerID, &item.Status, &item.Name, &item.Price, &item.Description, &item.ImageName, &item.CategoryID, &item.CreatedAt, &item.UpdatedAt, &seller.ID, &seller.AccountName, &seller.NumSellItems); err != nil {
+		var buyer UserSimple
+		if err := rows.Scan(&item.ID, &item.SellerID, &item.BuyerID, &item.Status, &item.Name, &item.Price, &item.Description, &item.ImageName, &item.CategoryID, &item.CreatedAt, &item.UpdatedAt); err != nil {
 			log.Print(err)
 			return
+		}
+		seller, err = redisful.GetUserSimpleByID(item.SellerID)
+		if err != nil {
+			seller, err = getUserSimpleByID(dbx, item.SellerID)
+			if err != nil {
+				log.Print(err)
+				outputErrorMsg(w, http.StatusNotFound, "seller not found")
+				return
+			}
 		}
 
 		category, ok := getCategoryById(item.CategoryID)
@@ -667,11 +679,14 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if item.BuyerID != 0 {
-			buyer, err := getUserSimpleByID(dbx, item.BuyerID)
+			buyer, err = redisful.GetUserSimpleByID(item.BuyerID)
 			if err != nil {
-				outputErrorMsg(w, http.StatusNotFound, "buyer not found")
-				log.Print(err)
-				return
+				buyer, err = getUserSimpleByID(dbx, item.BuyerID)
+				if err != nil {
+					outputErrorMsg(w, http.StatusNotFound, "buyer not found")
+					log.Print(err)
+					return
+				}
 			}
 			itemDetail.BuyerID = item.BuyerID
 			itemDetail.Buyer = &buyer
@@ -680,6 +695,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 		item_ids = append(item_ids, strconv.Itoa(int(itemDetail.ID)))
 	}
 	rows.Close()
+	redisful.Close()
 
 	rows, err = dbx.Query(
 		"SELECT t.id, t.status, t.item_id, s.reserve_id FROM transaction_evidences t INNER JOIN shippings s on s.transaction_evidence_id = t.id WHERE t.item_id IN (?)", strings.Join(item_ids, ","))
