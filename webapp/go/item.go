@@ -35,11 +35,11 @@ func getNewItems(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	items := []Item{}
+	var rows *sql.Rows
 	if itemID > 0 && createdAt > 0 {
 		// paging
-		err := dbx.Select(&items,
-			"SELECT * FROM `items` WHERE `status` IN (?,?) AND (`created_at` < ?  OR (`created_at` <= ? AND `id` < ?)) ORDER BY `created_at` DESC, `id` DESC LIMIT ?",
+		rows, err = dbx.Query(
+			"SELECT i.*, u.id, u.account_name, u.num_sell_items FROM `items` i INNER JOIN `users` u ON u.id = i.seller_id WHERE `status` IN (?,?) AND (i.`created_at` < ?  OR (i.`created_at` <= ? AND i.`id` < ?)) ORDER BY i.`created_at` DESC, i.`id` DESC LIMIT ?",
 			ItemStatusOnSale,
 			ItemStatusSoldOut,
 			time.Unix(createdAt, 0),
@@ -54,8 +54,8 @@ func getNewItems(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// 1st page
-		err := dbx.Select(&items,
-			"SELECT * FROM `items` WHERE `status` IN (?,?) ORDER BY `created_at` DESC, `id` DESC LIMIT ?",
+		rows, err = dbx.Query(
+			"SELECT i.*, u.id, u.account_name, u.num_sell_items FROM `items` i INNER JOIN `users` u on u.id = i.seller_id WHERE `status` IN (?,?) ORDER BY i.`created_at` DESC, i.`id` DESC LIMIT ?",
 			ItemStatusOnSale,
 			ItemStatusSoldOut,
 			ItemsPerPage+1,
@@ -66,12 +66,11 @@ func getNewItems(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
 	itemSimples := []ItemSimple{}
-	for _, item := range items {
-		seller, err := getUserSimpleByID(dbx, item.SellerID)
-		if err != nil {
-			outputErrorMsg(w, http.StatusNotFound, "seller not found")
+	for rows.Next() {
+		var item Item
+		var seller UserSimple
+		if err := rows.Scan(&item.ID, &item.SellerID, &item.BuyerID, &item.Status, &item.Name, &item.Price, &item.Description, &item.ImageName, &item.CategoryID, &item.CreatedAt, &item.UpdatedAt, &seller.ID, &seller.AccountName, &seller.NumSellItems); err != nil {
 			return
 		}
 		category, err := getCategoryByID(dbx, item.CategoryID)
@@ -92,6 +91,7 @@ func getNewItems(w http.ResponseWriter, r *http.Request) {
 			CreatedAt:  item.CreatedAt.Unix(),
 		})
 	}
+	rows.Close()
 
 	hasNext := false
 	if len(itemSimples) > ItemsPerPage {
