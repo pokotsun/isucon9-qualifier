@@ -25,6 +25,14 @@ socket		= /var/run/mysqld/mysqld.sock
 nice		= 0
 
 [mysqld]
+# バッファプールサイズの拡張
+innodb_buffer_pool_size = 384M
+# データの変更時のDBへの書き込みが減る
+innodb_log_file_size = 2M
+# バッファプールのウォームアップの有効
+innodb_buffer_pool_dump_pct  = 100
+innodb_buffer_pool_dump_at_shutdown= 1
+innodb_buffer_pool_load_at_startup = 1
 #
 # * Basic Settings
 #
@@ -51,7 +59,7 @@ thread_cache_size       = 8
 # This replaces the startup script and checks MyISAM tables if needed
 # the first time they are touched
 myisam-recover-options  = BACKUP
-#max_connections        = 100
+max_connections        = 1000
 #table_open_cache       = 64
 #thread_concurrency     = 10
 #
