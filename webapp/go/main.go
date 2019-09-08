@@ -638,7 +638,7 @@ func postRegister(w http.ResponseWriter, r *http.Request) {
 		AccountName:  accountName,
 		NumSellItems: 0,
 	}
-	redisful := NewRedisful()
+	redisful, _ := NewRedisful()
 	defer redisful.Close()
 	err = redisful.SetUserSimpleToRedis(userSimple)
 	if err != nil {

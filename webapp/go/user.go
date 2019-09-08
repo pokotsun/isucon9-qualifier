@@ -49,8 +49,8 @@ func (r *Redisful) SetUserSimpleToRedis(us UserSimple) error {
 	return err
 }
 
-func (r *Redisful) GetUserSimpleFromRedis(id int, us UserSimple) error {
-	err := r.GetHashFromCache(userSimpleHashKey, strconv.Itoa(id), us)
+func (r *Redisful) GetUserSimpleFromRedis(id int64, us UserSimple) error {
+	err := r.GetHashFromCache(userSimpleHashKey, strconv.Itoa(int(id)), us)
 	return err
 }
 

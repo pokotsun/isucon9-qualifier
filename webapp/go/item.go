@@ -199,7 +199,7 @@ func getNewCategoryItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	redisful := NewRedisful()
+	redisful, _ := NewRedisful()
 
 	itemSimples := []ItemSimple{}
 	for _, item := range items {
@@ -267,7 +267,7 @@ func getUserItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	redisful := NewRedisful()
+	redisful, _ := NewRedisful()
 
 	var userSimple UserSimple
 	err = redisful.GetUserSimpleFromRedis(userID, userSimple)
@@ -277,7 +277,7 @@ func getUserItems(w http.ResponseWriter, r *http.Request) {
 			outputErrorMsg(w, http.StatusNotFound, "user not found")
 			return
 		} else {
-			err = redisful.SetUserSimpleToRedis(seller)
+			err = redisful.SetUserSimpleToRedis(userSimple)
 			if err != nil {
 				log.Println("getUserItem: failed set user simple to redis")
 			}
@@ -424,7 +424,7 @@ func getItem(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
-	redisful := NewRedisful()
+	redisful, _ := NewRedisful()
 	var seller UserSimple
 	err = redisful.GetUserSimpleFromRedis(item.SellerID, seller)
 	if err != nil {
@@ -460,7 +460,7 @@ func getItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if (user.ID == item.SellerID || user.ID == item.BuyerID) && item.BuyerID != 0 {
-		redisful := NewRedisful()
+		redisful, _ := NewRedisful()
 
 		var buyer UserSimple
 		err = redisful.GetUserSimpleFromRedis(item.BuyerID, buyer)
@@ -682,7 +682,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	redisful := NewRedisful()
+	redisful, _ := NewRedisful()
 
 	itemDetails := []ItemDetail{}
 	for _, item := range items {
@@ -738,7 +738,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 		if item.BuyerID != 0 {
 
 			var buyer UserSimple
-			err = r.GetUserSimpleFromRedis()
+			err = redisful.GetUserSimpleFromRedis(item.BuyerID, buyer)
 			if err != nil {
 				buyer, err = getUserSimpleByID(tx, item.BuyerID)
 				if err != nil {
@@ -747,7 +747,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			} else {
-				err = r.SetUserSimpleToRedis(seller)
+				err = redisful.SetUserSimpleToRedis(seller)
 				if err != nil {
 					log.Println("getTransaction: failed set user simple to redis")
 				}
