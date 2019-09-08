@@ -55,7 +55,7 @@ func (r *Redisful) GetUserSimpleFromRedis(id int64, us UserSimple) error {
 }
 
 func (r *Redisful) InitializeUserSimple() error {
-	userSimples []UserSimple{}
+	userSimples := []UserSimple{}
 	err := dbx.Select(&userSimples, "SELECT id, account_name, num_sell_items FROM users")
 	if err != nil {
 		return err
